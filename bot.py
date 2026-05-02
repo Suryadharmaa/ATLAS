@@ -15,23 +15,23 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s] %(name)s: %(message)s", 
 logger = logging.getLogger(__name__)
 
 ONBOARDING_ID = (
-    "Selamat datang di *ATLAS*.\n\n"
+    "👋 Selamat datang di *ATLAS*.\n\n"
     "Saya membantu kamu memahami kondisi market — "
     "bukan memberi sinyal beli/jual.\n\n"
     "Cara pakai:\n"
     "• /analyze BTC — analisa langsung dengan data real-time\n"
-    "• Atau ketik: analisa BBCA atau risk on ETH\n\n"
-    "Semua output bersifat edukatif. Bukan rekomendasi investasi."
+    '• Atau ketik: *"analisa BBCA"* atau *"risk on ETH"*\n\n'
+    "⚠️ Semua output bersifat edukatif. Bukan rekomendasi investasi."
 )
 
 ONBOARDING_EN = (
-    "Welcome to *ATLAS*.\n\n"
+    "👋 Welcome to *ATLAS*.\n\n"
     "I help you understand market conditions — "
     "not give buy/sell signals.\n\n"
     "How to use:\n"
     "• /analyze BTC — direct analysis with real-time data\n"
-    "• Or type: analyze BBCA or risk on ETH\n\n"
-    "All output is educational. Not investment advice."
+    '• Or type: *"analyze BBCA"* or *"risk on ETH"*\n\n'
+    "⚠️ All output is educational. Not investment advice."
 )
 
 HELP_ID = (
@@ -51,7 +51,7 @@ HELP_EN = (
 )
 
 DISCLAIMER_FULL_ID = (
-    "Warning *Disclaimer ATLAS*\n\n"
+    "⚠️ *Disclaimer ATLAS*\n\n"
     "ATLAS adalah tools analisa konteks market berbasis AI.\n"
     "Output ATLAS bukan merupakan rekomendasi investasi, "
     "sinyal trading, atau saran finansial dalam bentuk apapun.\n\n"

@@ -63,6 +63,7 @@ def fetch_market_snapshot(ticker: str) -> Optional[dict]:
         ticker_obj = yf.Ticker(yf_symbol)
         df = ticker_obj.history(start=start.strftime("%Y-%m-%d"), end=end.strftime("%Y-%m-%d"), auto_adjust=True)
         if df.empty or len(df) < 20:
+            logger.warning(f"Insufficient market data for {ticker} ({yf_symbol})")
             return None
         if df.index.tz is not None:
             df.index = df.index.tz_localize(None)
@@ -95,28 +96,32 @@ def fetch_market_snapshot(ticker: str) -> Optional[dict]:
 
 
 def format_snapshot_for_prompt(snapshot: Optional[dict]) -> str:
+    """Convert market snapshot to readable string for LLM context."""
     if not snapshot:
-        return "[MARKET DATA: Unavailable]"
+        return "[MARKET DATA: Unavailable - analysis based on LLM knowledge only]"
     rsi = snapshot.get("rsi")
-    rsi_label = "Overbought (>70)" if rsi and rsi > 70 else ("Oversold (<30)" if rsi and rsi < 30 else "Neutral")
+    rsi_label = (
+        "Overbought (>70)" if rsi and rsi > 70
+        else ("Oversold (<30)" if rsi and rsi < 30 else "Neutral (30-70)")
+    )
     macd = snapshot.get("macd")
     sig = snapshot.get("macd_signal")
-    macd_label = "Bullish" if (macd and sig and macd > sig) else "Bearish"
+    macd_label = "Bullish (MACD > Signal)" if (macd and sig and macd > sig) else "Bearish (MACD < Signal)"
     price = snapshot["price"]
     sma20 = snapshot["sma20"]
     sma50 = snapshot.get("sma50")
     change = snapshot.get("change_7d_pct", 0)
     direction = "+" if change >= 0 else "-"
     vol = snapshot.get("volume_ratio")
-    vol_label = f"{vol}x avg" if vol else "N/A"
+    vol_label = f"{vol}x avg ({'above' if vol and vol > 1 else 'below'} average)" if vol else "N/A"
     lines = [
         f"MARKET DATA: {snapshot['ticker']}",
-        f"Price: {price} {direction}{change}% (7d)",
-        f"SMA20: {sma20} {'ABOVE' if price > sma20 else 'BELOW'}",
-        f"SMA50: {sma50 if sma50 else 'N/A'}",
-        f"RSI(14): {rsi} {rsi_label}" if rsi else "RSI(14): N/A",
-        f"MACD: {macd} Signal: {sig} {macd_label}" if macd and sig else "MACD: N/A",
-        f"ATR(14): {snapshot.get('atr', 'N/A')}",
-        f"Volume: {vol_label}",
+        f"Price     : {price} {direction}{change}% (7d)",
+        f"SMA20     : {sma20} -> {'Price ABOVE SMA20' if price > sma20 else 'Price BELOW SMA20'}",
+        f"SMA50     : {sma50} -> {'Price ABOVE SMA50' if sma50 and price > sma50 else 'Price BELOW SMA50'}" if sma50 else "SMA50     : N/A (< 50 data points)",
+        f"RSI(14)   : {rsi} -> {rsi_label}" if rsi else "RSI(14)   : N/A",
+        f"MACD      : {macd} | Signal: {sig} -> {macd_label}" if macd and sig else "MACD      : N/A",
+        f"ATR(14)   : {snapshot.get('atr', 'N/A')} (volatility measure)",
+        f"Volume    : {vol_label}",
     ]
     return "\n".join(lines)

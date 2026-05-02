@@ -15,7 +15,14 @@ except ImportError:
 
 
 class MarketMemory:
-    """Per-session memory using BM25 scoring."""
+    """Per-session memory using BM25 scoring.
+
+    Stores (market_situation_key, analysis_summary) pairs.
+    On recall(), uses BM25 to find the most similar past situation
+    and returns its summary as context for the next LLM call.
+
+    Lifecycle: one instance per Telegram session (lives in session dict).
+    """
 
     def __init__(self):
         self.situations: List[str] = []
@@ -32,11 +39,20 @@ class MarketMemory:
             self._bm25 = None
 
     def add(self, situation: str, summary: str):
+        """Store a market situation and the analysis generated for it.
+
+        situation: compact key e.g. "BTC RSI:62 MACD:bullish change7d:+3.2%"
+        summary:   first 400 chars of the ATLAS output for that situation
+        """
         self.situations.append(situation)
         self.summaries.append(summary[:400])
         self._rebuild()
 
     def recall(self, current_situation: str, n: int = 1) -> List[dict]:
+        """Return top-n most similar past situations using BM25 scoring.
+
+        Returns empty list if no memory or BM25 unavailable.
+        """
         if not self.situations or not self._bm25:
             return []
         tokens = self._tokenize(current_situation)

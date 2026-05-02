@@ -44,6 +44,8 @@ def run_analysis(user_text: str, history: list, lang: str, memory=None) -> str |
     if ticker:
         snapshot = fetch_market_snapshot(ticker)
         market_str = format_snapshot_for_prompt(snapshot)
+        data_available = snapshot is not None
+        logger.info(f"run_analysis | ticker={ticker} | data={'OK' if data_available else 'N/A'} | lang={lang}")
         memory_context = ""
         if memory and len(memory) > 0:
             situation_key = (
@@ -53,6 +55,7 @@ def run_analysis(user_text: str, history: list, lang: str, memory=None) -> str |
             past = memory.recall(situation_key, n=1)
             if past:
                 memory_context = past[0]["summary"]
+                logger.info(f"Memory recall hit | score={past[0]['score']}")
         result = run_debate(
             ticker=ticker, market_data_str=market_str, user_text=user_text,
             history=history, lang=lang, memory_context=memory_context,
