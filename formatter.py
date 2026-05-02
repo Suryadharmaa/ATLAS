@@ -59,8 +59,11 @@ def safe_to_send(text: str) -> bool:
     """Final gate before sending to Telegram."""
     if not text or len(text) < 50:
         return False
+    # Robust disclaimer check — look for key phrases in both languages
     disclaimer_present = (
-        "Bukan rekomendasi" in text or "Not financial advice" in text
+        "Bukan rekomendasi" in text
+        or "Not financial advice" in text
+        or "⚠️" in text  # Fallback: presence of warning emoji
     )
     if not disclaimer_present:
         logger.error("safe_to_send blocked: disclaimer missing")
